@@ -5,28 +5,26 @@ def detect_attack(url):
     attack_type = "Normal"
     severity = "Low"
 
-    # SQL Injection
-    if "UNION SELECT" in url.upper() or "OR 1=1" in url.upper():
+    url_upper = url.upper()
+    url_lower = url.lower()
+
+    if "UNION SELECT" in url_upper or "OR 1=1" in url_upper:
         attack_type = "SQL Injection"
         severity = "High"
 
-    # XSS
-    elif "<script>" in url.lower() or "onerror=" in url.lower():
+    elif "<script>" in url_lower or "onerror=" in url_lower:
         attack_type = "XSS"
         severity = "High"
 
-    # Directory Traversal
     elif "../" in url:
         attack_type = "Directory Traversal"
         severity = "Medium"
 
-    # Command Injection
-    elif ";" in url and ("ls" in url or "whoami" in url):
+    elif ";" in url and ("ls" in url_lower or "whoami" in url_lower):
         attack_type = "Command Injection"
         severity = "High"
 
-    # SSRF
-    elif "127.0.0.1" in url or "localhost" in url:
+    elif "127.0.0.1" in url or "localhost" in url_lower:
         attack_type = "SSRF"
         severity = "High"
 
@@ -37,6 +35,10 @@ def detect_attack(url):
 
 
 if __name__ == "__main__":
-    input_data = json.loads(sys.argv[1])
-    result = detect_attack(input_data["url"])
-    print(json.dumps(result))
+    try:
+        input_json = sys.stdin.read()
+        data = json.loads(input_json)
+        result = detect_attack(data["url"])
+        print(json.dumps(result))
+    except Exception as e:
+        print(json.dumps({"error": str(e)}))
