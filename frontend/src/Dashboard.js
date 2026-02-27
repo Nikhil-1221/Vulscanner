@@ -1,22 +1,42 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 
 export default function Dashboard() {
 
-  const [url,setUrl] = useState("");
-  const [result,setResult] = useState(null);
-  const [history,setHistory] = useState([]);
+  const [url, setUrl] = useState("");
+  const [result, setResult] = useState(null);
+  const [history, setHistory] = useState([]);
+
+  // Fetch history from MongoDB
+  useEffect(() => {
+    fetchHistory();
+  }, []);
+
+  const fetchHistory = async () => {
+    try {
+      const res = await axios.get("http://localhost:5000/api/attacks");
+      setHistory(res.data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const scanUrl = async () => {
-    const res = await axios.post("http://localhost:5000/api/scan",{
-      ip:"127.0.0.1",
-      url:url,
-      responseCode:200
-    });
+    try {
+      const res = await axios.post("http://localhost:5000/api/scan", {
+        ip: "127.0.0.1",
+        url: url,
+        responseCode: 200
+      });
 
-    setResult(res.data);
-    setHistory([res.data, ...history]);
-  }
+      setResult(res.data);
+      setUrl("");
+      fetchHistory(); // refresh real DB data
+
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#0d1117] text-white flex">
@@ -63,8 +83,18 @@ export default function Dashboard() {
         {result && (
           <div className="bg-[#161b22] p-6 rounded-xl mb-8 max-w-2xl">
             <h2 className="text-xl mb-2">Scan Result</h2>
-            <p>Attack: <span className="text-red-400">{result.attackType}</span></p>
-            <p>Severity: <span className="text-yellow-400">{result.severity}</span></p>
+            <p>
+              Attack: 
+              <span className="ml-2 text-red-400 font-bold">
+                {result.attackType}
+              </span>
+            </p>
+            <p>
+              Severity: 
+              <span className="ml-2 text-yellow-400 font-bold">
+                {result.severity}
+              </span>
+            </p>
           </div>
         )}
 
@@ -77,6 +107,8 @@ export default function Dashboard() {
               <tr className="border-b border-gray-700">
                 <th className="py-2">Attack</th>
                 <th>Severity</th>
+                <th>Status</th>
+                <th>Time</th>
               </tr>
             </thead>
 
@@ -85,6 +117,10 @@ export default function Dashboard() {
                 <tr key={index} className="border-b border-gray-800">
                   <td className="py-2">{item.attackType}</td>
                   <td>{item.severity}</td>
+                  <td>{item.status}</td>
+                  <td>
+                    {new Date(item.createdAt).toLocaleString()}
+                  </td>
                 </tr>
               ))}
             </tbody>
