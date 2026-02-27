@@ -3,3 +3,4 @@ backend/.env
 node_modules/
 .env
 Project notes.txt
+frontend/node_modules/
