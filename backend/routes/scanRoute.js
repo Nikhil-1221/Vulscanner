@@ -42,5 +42,14 @@ router.post("/scan", async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
+// Get all attacks
+router.get("/attacks", async (req, res) => {
+    try {
+        const attacks = await Attack.find().sort({ createdAt: -1 });
+        res.json(attacks);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
 
 module.exports = router;
